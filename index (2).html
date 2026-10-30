@@ -1,0 +1,672 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Portfolio</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0d0f23;
+    --ink: #d8d9ec;
+    --muted: #8f93b8;
+    --violet: #7b5cff;
+    --coral: #ff7a59;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: "Space Grotesk", "Helvetica Neue", Arial, sans-serif;
+    display: flex;
+    align-items: center;
+    min-height: 100vh;
+    padding: 6vw;
+    overflow-x: hidden;
+  }
+  #waves { position: fixed; inset: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none; }
+  #glow {
+    position: fixed; top: 0; left: 0; width: 0; height: 0;
+    z-index: -1; pointer-events: none; opacity: 0; transition: opacity 0.4s;
+  }
+  #glow.on { opacity: 1; }
+  #glow::before {
+    content: ""; position: absolute; width: 380px; height: 380px; margin: -190px 0 0 -190px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(150,120,255,0.30) 0%, rgba(255,122,89,0.10) 45%, transparent 70%);
+    filter: blur(28px);
+    transition: opacity 0.35s, transform 0.35s;
+  }
+  #glow.clear::before { opacity: 0; transform: scale(0.4); }
+  main { width: 100%; animation: rise 0.9s cubic-bezier(.2,.7,.2,1) both; }
+  @keyframes rise { from { opacity: 0; transform: translateY(24px); } to { opacity: 1; transform: none; } }
+
+  .spot {
+    --x: 50%; --y: 50%;
+    width: fit-content;
+    max-width: 100%;
+    margin: 0;
+    font-size: clamp(3.4rem, 20vw, 19rem);
+    font-weight: 700;
+    letter-spacing: -0.05em;
+    line-height: 0.88;
+    color: transparent;
+    -webkit-text-stroke: 2px var(--ink);
+    background-image: radial-gradient(circle 26vw at var(--x) var(--y),
+      var(--coral) 0%, var(--violet) 55%, transparent 100%);
+    background-repeat: no-repeat;
+    -webkit-background-clip: text;
+    background-clip: text;
+    user-select: none;
+  }
+  h1.spot { margin: 0; }
+  h2.spot {
+    margin: 9vw 0 0;
+    font-size: clamp(2.4rem, 9vw, 8rem);
+    font-weight: 700;
+    letter-spacing: -0.04em;
+    line-height: 0.95;
+    font-style: italic;
+    -webkit-text-stroke-width: 1.5px;
+    background-image: radial-gradient(circle 14vw at var(--x) var(--y),
+      var(--coral) 0%, var(--violet) 55%, transparent 100%);
+  }
+
+  .editable {
+    display: block;
+    width: fit-content;
+    max-width: 100%;
+    padding: 0.25em 0;
+    font-size: clamp(1.3rem, 3.4vw, 2.6rem);
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--muted);
+    border-bottom: 3px solid transparent;
+    border-image: linear-gradient(90deg, var(--coral), var(--violet)) 1;
+    outline: none;
+    min-width: 12ch;
+    cursor: text;
+    transition: color 0.2s;
+  }
+  .editable:hover, .editable:focus, .editable.filled { color: var(--ink); }
+  .name { margin-top: 3vw; }
+  .desc, .contact {
+    margin-top: 1.4rem;
+    font-size: clamp(1rem, 1.6vw, 1.3rem);
+    padding: 0.2em 0;
+    border-bottom-width: 2px;
+    border-bottom-style: solid;
+    min-width: 18ch;
+  }
+  .desc { max-width: 38rem; line-height: 1.45; }
+  .desc, .contact { white-space: pre-wrap; }
+  .hint { margin: 1.5rem 0 0; font-size: 0.9rem; color: var(--muted); }
+  .hint.done { display: none; }
+
+
+  :focus-visible { outline: 2px solid var(--violet); outline-offset: 3px; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 20px;
+    margin-top: 2.5rem;
+  }
+  .card {
+    position: relative;
+    display: flex; flex-direction: column;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.09);
+    border-radius: 14px;
+    overflow: hidden;
+  }
+  .card img, .card .ph { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; }
+  .card .ph { background: linear-gradient(135deg, rgba(123,92,255,0.25), rgba(255,122,89,0.12)); }
+  .card h3 { margin: 14px 16px 4px; font-size: 1.1rem; font-weight: 500; color: var(--ink); }
+  .card p { margin: 0 16px 16px; color: var(--muted); font-size: 0.95rem; line-height: 1.45; white-space: pre-wrap; }
+  .card .del {
+    position: absolute; top: 8px; right: 8px; width: 32px; height: 32px;
+    border: 0; border-radius: 50%; cursor: pointer;
+    background: rgba(13,15,35,0.8); color: var(--ink); font-size: 1.2rem; line-height: 1;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .card:hover .del, .card .del:focus-visible { opacity: 1; }
+  @media (hover: none) { .card .del { opacity: 1; } }
+
+  .add {
+    min-height: 220px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem;
+    background: transparent; color: var(--muted); font: inherit; cursor: pointer;
+    border: 2px dashed rgba(216,217,236,0.25); border-radius: 14px;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  .add .plus { font-size: 3.2rem; line-height: 1; font-weight: 500; }
+  .add:hover, .add:focus-visible { border-color: var(--violet); color: var(--ink); }
+
+  dialog {
+    width: min(92vw, 460px); padding: 24px;
+    background: #14173a; color: var(--ink);
+    border: 1px solid rgba(255,255,255,0.12); border-radius: 16px;
+    font-family: inherit;
+  }
+  dialog::backdrop { background: rgba(5,6,18,0.72); }
+  dialog h3 { margin: 0 0 1rem; font-size: 1.3rem; font-weight: 500; }
+  .field { display: block; margin-bottom: 1rem; font-size: 0.9rem; color: var(--muted); }
+  .field input, .field textarea {
+    display: block; width: 100%; margin-top: 0.4rem; padding: 10px 12px;
+    background: rgba(255,255,255,0.05); color: var(--ink); font: inherit; font-size: 1rem;
+    border: 1px solid rgba(255,255,255,0.14); border-radius: 10px;
+  }
+  .field textarea { resize: vertical; }
+  #ppreview { display: block; width: 100%; aspect-ratio: 16 / 10; object-fit: cover; border-radius: 10px; margin-bottom: 1rem; }
+  .actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 0.5rem; }
+  .err { margin: 0 0 0.6rem; color: #ff9d85; font-size: 0.9rem; }
+  .btn {
+    padding: 10px 18px; border: 0; border-radius: 10px; cursor: pointer;
+    background: var(--violet); color: #fff; font: inherit; font-weight: 500;
+  }
+  .btn.ghost { background: transparent; color: var(--muted); border: 1px solid rgba(255,255,255,0.14); }
+
+
+  [hidden] { display: none !important; }
+  body:not(.owner) .editable { border: 0; border-image: none; cursor: default; }
+  .card.off { opacity: 0.5; }
+  .showrow { display: flex; align-items: center; gap: 8px; padding: 0 16px 14px; color: var(--muted); font-size: 0.9rem; cursor: pointer; }
+  .showrow input { accent-color: var(--violet); width: 16px; height: 16px; }
+  #publish { position: fixed; right: 20px; bottom: 20px; z-index: 5; box-shadow: 0 6px 24px rgba(0,0,0,0.4); padding: 12px 20px; }
+  dialog ol { margin: 0 0 1rem; padding-left: 1.2rem; color: var(--muted); line-height: 1.6; font-size: 0.95rem; }
+  dialog p.lead { margin: 0 0 1rem; color: var(--muted); font-size: 0.95rem; line-height: 1.5; }
+  #pjson { height: 80px; font-size: 0.8rem; }
+  #pstatus { min-height: 1.3em; margin: 0 0 0.6rem; font-size: 0.9rem; color: var(--ink); }
+
+
+  .card .open { display: block; width: 100%; padding: 0; border: 0; background: none; color: inherit; font: inherit; text-align: left; cursor: zoom-in; }
+  .card .ct { display: block; margin: 14px 16px 4px; font-size: 1.1rem; font-weight: 500; color: var(--ink); }
+  .card .cd { display: -webkit-box; margin: 0 16px 16px; color: var(--muted); font-size: 0.95rem; line-height: 1.45; white-space: pre-wrap; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .ownerrow { display: flex; align-items: center; justify-content: space-between; padding: 0 16px 14px; }
+  .ownerrow .showrow { padding: 0; }
+  .rm { background: none; border: 0; padding: 0; color: var(--muted); font: inherit; font-size: 0.9rem; text-decoration: underline; cursor: pointer; }
+  .rm:hover, .rm:focus-visible { color: #ff9d85; }
+
+  .zbd { position: fixed; inset: 0; z-index: 50; background: rgba(5,6,18,0.78); opacity: 0; transition: opacity 0.35s; }
+  .zbd.on { opacity: 1; }
+  .zoom { position: fixed; z-index: 51; display: flex; background: #14173a; border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,0.5); }
+  .zscroll { flex: 1; min-height: 0; overflow: auto; }
+  .zscroll img, .zscroll .ph { display: block; width: 100%; max-height: 60vh; object-fit: contain; background: #0d0f23; }
+  .zscroll .ph { aspect-ratio: 16 / 10; background: linear-gradient(135deg, rgba(123,92,255,0.25), rgba(255,122,89,0.12)); }
+  .zscroll h3 { margin: 20px 24px 8px; font-size: 1.6rem; font-weight: 500; color: var(--ink); }
+  .zscroll p { margin: 0 24px 24px; color: var(--muted); line-height: 1.55; white-space: pre-wrap; }
+  .zclose { position: absolute; top: 10px; right: 10px; z-index: 1; width: 40px; height: 40px; border: 0; border-radius: 50%; background: rgba(13,15,35,0.8); color: var(--ink); font-size: 1.5rem; line-height: 1; cursor: pointer; }
+
+
+  .editable, .card .ct, .card .cd, .zscroll h3, .zscroll p { overflow-wrap: anywhere; word-break: break-word; }
+  .zscroll { overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; }
+
+  @media (prefers-reduced-motion: reduce) { main { animation: none; } }
+</style>
+</head>
+<body>
+  <canvas id="waves" aria-hidden="true"></canvas>
+  <div id="glow" aria-hidden="true"></div>
+  <main>
+    <h1 class="spot">Portfolio</h1>
+    <!-- To set text permanently, replace the placeholder text inside each
+         element below and add "filled" to its class, e.g. class="editable name filled" -->
+    <div class="editable name" data-key="name" contenteditable="true" spellcheck="false"
+         role="textbox" aria-label="Your name">*input your name here</div>
+    <div class="editable desc" data-key="desc" contenteditable="true" spellcheck="false"
+         role="textbox" aria-label="Your description">*Input your description here*</div>
+    <div class="editable contact" data-key="contact" contenteditable="true" spellcheck="false"
+         role="textbox" aria-label="Your contact info">*Input your contact info here*</div>
+    <p class="hint" id="hint">Editing mode: click any line to change it (Enter makes a new line in the description and contact). When you are happy, press Put on show.</p>
+    <h2 class="spot" id="projhead">Projects</h2>
+    <section class="grid" id="grid" aria-label="Projects"></section>
+    <p class="hint" id="pnote" hidden>Your projects are shown for this visit only. This browser could not save them (storage is blocked or full).</p>
+  </main>
+
+  <dialog id="dlg" aria-labelledby="dtitle">
+    <form id="pform">
+      <h3 id="dtitle">Add a project</h3>
+      <label class="field">Image
+        <input type="file" id="pimg" accept="image/*">
+      </label>
+      <img id="ppreview" alt="Preview of the chosen image" hidden>
+      <label class="field">Title
+        <input id="ptitle" required maxlength="80" placeholder="Project name">
+      </label>
+      <label class="field">Description
+        <textarea id="pdesc" rows="3" maxlength="1000" placeholder="What is it, and what did you do?"></textarea>
+      </label>
+      <p class="err" id="perr" role="alert" hidden>Please enter a title.</p>
+      <div class="actions">
+        <button type="button" class="btn ghost" id="pcancel">Cancel</button>
+        <button type="button" class="btn" id="psubmit">Add project</button>
+      </div>
+    </form>
+  </dialog>
+  <button type="button" class="btn" id="publish" hidden>Put on show</button>
+  <dialog id="pubdlg" aria-labelledby="pubtitle">
+    <h3 id="pubtitle">Put on show</h3>
+    <p class="lead" id="pcount"></p>
+    <ol>
+      <li>Click <b>Download content.json</b>.</li>
+      <li>On GitHub, open your repository, click <b>Add file</b>, then <b>Upload files</b>, drop in <b>content.json</b> (next to index.html) and commit.</li>
+      <li>Wait about a minute, then refresh your site. Visitors now see what you picked.</li>
+    </ol>
+    <label class="field">Or copy it by hand
+      <textarea id="pjson" readonly></textarea>
+    </label>
+    <p id="pstatus" role="status"></p>
+    <div class="actions">
+      <button type="button" class="btn ghost" id="pubclose">Close</button>
+      <button type="button" class="btn ghost" id="pubcopy">Copy</button>
+      <button type="button" class="btn" id="pubdl">Download content.json</button>
+    </div>
+  </dialog>
+
+<script>
+  (function () {
+    /* Colour spotlight on the title: follows the pointer, drifts on its own otherwise */
+    /* PSP-style flowing wave background, drawn in the page colours */
+    var cv = document.getElementById('waves');
+    var ctx = cv.getContext('2d');
+    var W, H;
+    var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ribbons = [
+      { c: '123,92,255', a: 0.13, y: 0.50, amp: 0.10, k: 1.0, sp: 0.00020, ph: 0.0, th: 0.20 },
+      { c: '70,100,255', a: 0.10, y: 0.58, amp: 0.12, k: 1.4, sp: 0.00016, ph: 2.1, th: 0.16 },
+      { c: '255,122,89', a: 0.05, y: 0.64, amp: 0.09, k: 1.2, sp: 0.00024, ph: 4.0, th: 0.10 },
+      { c: '150,120,255', a: 0.08, y: 0.42, amp: 0.08, k: 1.7, sp: 0.00014, ph: 5.2, th: 0.12 }
+    ];
+    function sizeCanvas() {
+      var d = Math.min(devicePixelRatio || 1, 1.5);
+      W = innerWidth; H = innerHeight;
+      cv.width = W * d; cv.height = H * d;
+      ctx.setTransform(d, 0, 0, d, 0, 0);
+    }
+    function drawWaves(t) {
+      var bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#0d0f23');
+      bg.addColorStop(1, '#10133a');
+      ctx.globalCompositeOperation = 'source-over';
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+      ctx.globalCompositeOperation = 'lighter';
+      ribbons.forEach(function (r) {
+        var TAU = Math.PI * 2, top = [], bot = [], x, u, y0, th;
+        for (x = 0; x <= W + 10; x += 10) {
+          u = x / W * TAU;
+          y0 = H * (r.y + r.amp * Math.sin(u * r.k + t * r.sp + r.ph)
+                        + r.amp * 0.5 * Math.sin(u * r.k * 2.3 - t * r.sp * 1.3 + r.ph));
+          th = H * r.th * (0.65 + 0.35 * Math.sin(u * 0.8 + r.ph + t * r.sp * 0.7));
+          top.push([x, y0]); bot.push([x, y0 + th]);
+        }
+        var g = ctx.createLinearGradient(0, H * (r.y - r.amp * 1.5), 0, H * (r.y + r.amp * 1.5 + r.th));
+        g.addColorStop(0, 'rgba(' + r.c + ',0)');
+        g.addColorStop(0.45, 'rgba(' + r.c + ',' + r.a + ')');
+        g.addColorStop(1, 'rgba(' + r.c + ',0)');
+        ctx.beginPath();
+        top.forEach(function (p, i) { i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+        for (var i = bot.length - 1; i >= 0; i--) ctx.lineTo(bot[i][0], bot[i][1]);
+        ctx.closePath();
+        ctx.fillStyle = g;
+        ctx.fill();
+        ctx.beginPath();
+        top.forEach(function (p, i) { i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]); });
+        ctx.strokeStyle = 'rgba(' + r.c + ',' + (r.a * 0.9) + ')';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+      });
+    }
+    sizeCanvas();
+    addEventListener('resize', function () { sizeCanvas(); if (reduce) drawWaves(4000); });
+    if (reduce) { drawWaves(4000); }
+    else { (function loop(t) { drawWaves(t); requestAnimationFrame(loop); })(0); }
+
+    /* Soft blurred light around the cursor; it clears when the cursor is on a heading */
+    var glow = document.getElementById('glow');
+    var gx = 0, gy = 0, tx = 0, ty = 0;
+    addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch') return;
+      tx = e.clientX; ty = e.clientY;
+      if (!glow.classList.contains('on')) { gx = tx; gy = ty; glow.classList.add('on'); }
+      glow.classList.toggle('clear', !!(e.target.closest && e.target.closest('.spot')));
+    });
+    document.addEventListener('pointerleave', function () { glow.classList.remove('on'); });
+    (function follow() {
+      gx += (tx - gx) * (reduce ? 1 : 0.18);
+      gy += (ty - gy) * (reduce ? 1 : 0.18);
+      glow.style.transform = 'translate3d(' + gx + 'px,' + gy + 'px,0)';
+      requestAnimationFrame(follow);
+    })();
+
+    var spots = document.querySelectorAll('.spot');
+    var still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var active = false;
+    function set(el, x, y) {
+      var r = el.getBoundingClientRect();
+      el.style.setProperty('--x', (x - r.left) + 'px');
+      el.style.setProperty('--y', (y - r.top) + 'px');
+    }
+    addEventListener('pointermove', function (e) {
+      active = true;
+      spots.forEach(function (el) { set(el, e.clientX, e.clientY); });
+    });
+    if (!still) {
+      (function drift(t) {
+        if (!active) {
+          var p = (Math.sin(t / 1800) + 1) / 2;
+          spots.forEach(function (el) {
+            var r = el.getBoundingClientRect();
+            set(el, r.left + r.width * (0.1 + 0.8 * p), r.top + r.height * 0.5);
+          });
+        }
+        requestAnimationFrame(drift);
+      })(0);
+    }
+
+    /* Owner (editing) vs visitor (read-only).
+       Owner mode: open the site with ?edit on the end of the address (or open the file on your computer). */
+    var owner = /[?&]edit\b/.test(location.search) || !/^https?:$/.test(location.protocol);
+    document.body.classList.toggle('owner', owner);
+
+    var data = { name: '', desc: '', contact: '', projects: [] };
+    var lines = document.querySelectorAll('.editable');
+    var phs = {};
+    lines.forEach(function (el) { phs[el.dataset.key] = el.textContent.trim(); });
+    var hint = document.getElementById('hint');
+    var projhead = document.getElementById('projhead');
+    var pnote = document.getElementById('pnote');
+    var grid = document.getElementById('grid');
+    var pubBtn = document.getElementById('publish');
+    var LS = { name: 'portfolio-name', desc: 'portfolio-desc', contact: 'portfolio-contact', projects: 'portfolio-projects' };
+
+    function clean(j) {
+      j = j || {};
+      return {
+        name: String(j.name || ''), desc: String(j.desc || ''), contact: String(j.contact || ''),
+        projects: Array.isArray(j.projects) ? j.projects.filter(function (p) { return p && p.title; }) : []
+      };
+    }
+    function loadLocal() {
+      var d = clean({}), any = false;
+      try {
+        ['name', 'desc', 'contact'].forEach(function (k) {
+          var v = localStorage.getItem(LS[k]);
+          if (v) { d[k] = v; any = true; }
+        });
+        var p = JSON.parse(localStorage.getItem(LS.projects) || '[]');
+        if (Array.isArray(p) && p.length) { d.projects = p; any = true; }
+      } catch (e) {}
+      return any ? d : null;
+    }
+    function persist() {
+      var ok = true;
+      try {
+        ['name', 'desc', 'contact'].forEach(function (k) {
+          if (data[k]) localStorage.setItem(LS[k], data[k]); else localStorage.removeItem(LS[k]);
+        });
+        localStorage.setItem(LS.projects, JSON.stringify(data.projects));
+      } catch (e) { ok = false; }
+      pnote.hidden = ok;
+    }
+
+    function renderLines() {
+      lines.forEach(function (el) {
+        var k = el.dataset.key, v = data[k];
+        el.textContent = v || phs[k];
+        el.classList.toggle('filled', !!v);
+        if (!owner) { el.setAttribute('contenteditable', 'false'); }
+        else if (k === 'name') { el.setAttribute('contenteditable', 'true'); }
+        else {
+          el.contentEditable = 'plaintext-only';
+          if (el.contentEditable !== 'plaintext-only') el.contentEditable = 'true';
+        }
+        if (!owner) el.removeAttribute('role');
+        el.hidden = !owner && !v;
+      });
+      document.title = data.name ? data.name + ' | Portfolio' : 'Portfolio';
+      hint.hidden = !owner;
+      pubBtn.hidden = !owner;
+    }
+
+    var dlg = document.getElementById('dlg');
+    var pform = document.getElementById('pform');
+    var pimg = document.getElementById('pimg');
+    var ppreview = document.getElementById('ppreview');
+    var pending = '';
+
+    /* Click a project card: it grows to the middle of the screen; X (or Esc) sends it back */
+    function zoomIn(card, pr) {
+      var calm = matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var ease = 'cubic-bezier(.2,.7,.2,1)';
+      var T = calm ? 'none' : 'left .35s ' + ease + ', top .35s ' + ease + ', width .35s ' + ease + ', height .35s ' + ease;
+      var bd = document.createElement('div'); bd.className = 'zbd';
+      var panel = document.createElement('div'); panel.className = 'zoom';
+      panel.setAttribute('role', 'dialog'); panel.setAttribute('aria-modal', 'true'); panel.setAttribute('aria-label', pr.title);
+      var sc = document.createElement('div'); sc.className = 'zscroll';
+      var cardImg = card.querySelector('img'), late = false;
+      if (pr.img) {
+        var im = document.createElement('img'); im.src = pr.img; im.alt = pr.title;
+        if (cardImg && cardImg.naturalWidth) im.style.aspectRatio = cardImg.naturalWidth + ' / ' + cardImg.naturalHeight;
+        else late = true;
+        sc.appendChild(im);
+      } else { var ph = document.createElement('div'); ph.className = 'ph'; sc.appendChild(ph); }
+      var h = document.createElement('h3'); h.textContent = pr.title; sc.appendChild(h);
+      if (pr.desc) { var d = document.createElement('p'); d.textContent = pr.desc; sc.appendChild(d); }
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'zclose';
+      x.textContent = '\u00d7'; x.setAttribute('aria-label', 'Close');
+      panel.appendChild(sc); panel.appendChild(x);
+      document.body.appendChild(bd); document.body.appendChild(panel);
+
+      function put(r) {
+        panel.style.left = r.left + 'px'; panel.style.top = r.top + 'px';
+        panel.style.width = r.width + 'px'; panel.style.height = r.height + 'px';
+      }
+      function target() {
+        var W = Math.min(innerWidth * 0.92, 760);
+        panel.style.transition = 'none'; panel.style.width = W + 'px'; panel.style.height = 'auto';
+        var H = Math.min(panel.offsetHeight, innerHeight * 0.9);
+        return { left: (innerWidth - W) / 2, top: (innerHeight - H) / 2, width: W, height: H };
+      }
+      var to = target();
+      put(card.getBoundingClientRect());
+      card.style.visibility = 'hidden';
+      document.documentElement.style.overflow = 'hidden';
+      void panel.offsetWidth;
+      panel.style.transition = T;
+      bd.classList.add('on');
+      put(to);
+      x.focus();
+
+      var closing = false;
+      function close() {
+        if (closing) return; closing = true;
+        panel.style.transition = T;
+        bd.classList.remove('on');
+        put(card.getBoundingClientRect());
+        setTimeout(function () {
+          bd.remove(); panel.remove();
+          card.style.visibility = '';
+          document.documentElement.style.overflow = '';
+          document.removeEventListener('keydown', onKey);
+          removeEventListener('resize', onResize);
+          var o = card.querySelector('.open'); if (o) o.focus();
+        }, calm ? 0 : 360);
+      }
+      function onKey(e) {
+        if (e.key === 'Escape') { e.preventDefault(); close(); }
+        else if (e.key === 'Tab') { e.preventDefault(); x.focus(); }
+      }
+      function onResize() { if (closing) return; var r = target(); panel.style.transition = 'none'; put(r); }
+      if (late) im.addEventListener('load', function () {
+        if (closing) return;
+        var r = target(); void panel.offsetWidth; panel.style.transition = T; put(r);
+      });
+      x.addEventListener('click', close);
+      bd.addEventListener('click', close);
+      document.addEventListener('keydown', onKey);
+      addEventListener('resize', onResize);
+    }
+
+    function renderProjects() {
+      grid.textContent = '';
+      var list = [];
+      data.projects.forEach(function (pr, i) { if (owner || pr.show !== false) list.push({ pr: pr, i: i }); });
+      projhead.hidden = grid.hidden = (!owner && list.length === 0);
+      list.forEach(function (x) {
+        var pr = x.pr, i = x.i;
+        var card = document.createElement('article'); card.className = 'card';
+        var open = document.createElement('button'); open.type = 'button'; open.className = 'open';
+        open.setAttribute('aria-label', 'Open ' + pr.title);
+        if (pr.img) { var im = document.createElement('img'); im.src = pr.img; im.alt = ''; open.appendChild(im); }
+        else { var ph = document.createElement('span'); ph.className = 'ph'; open.appendChild(ph); }
+        var t = document.createElement('span'); t.className = 'ct'; t.textContent = pr.title; open.appendChild(t);
+        if (pr.desc) { var d = document.createElement('span'); d.className = 'cd'; d.textContent = pr.desc; open.appendChild(d); }
+        open.addEventListener('click', function () { zoomIn(card, pr); });
+        card.appendChild(open);
+        if (owner) {
+          card.classList.toggle('off', pr.show === false);
+          var row = document.createElement('div'); row.className = 'ownerrow';
+          var lab = document.createElement('label'); lab.className = 'showrow';
+          var cb = document.createElement('input'); cb.type = 'checkbox'; cb.checked = pr.show !== false;
+          cb.addEventListener('change', function () {
+            pr.show = cb.checked; card.classList.toggle('off', !cb.checked); persist();
+          });
+          lab.appendChild(cb); lab.appendChild(document.createTextNode('Show to visitors'));
+          var rm = document.createElement('button'); rm.type = 'button'; rm.className = 'rm'; rm.textContent = 'Remove';
+          rm.setAttribute('aria-label', 'Remove ' + pr.title);
+          rm.addEventListener('click', function () { data.projects.splice(i, 1); persist(); renderProjects(); });
+          row.appendChild(lab); row.appendChild(rm); card.appendChild(row);
+        }
+        grid.appendChild(card);
+      });
+      if (owner) {
+        var add = document.createElement('button');
+        add.type = 'button'; add.className = 'add';
+        add.innerHTML = '<span class="plus" aria-hidden="true">+</span><span>Add a project</span>';
+        add.addEventListener('click', function () {
+          pform.reset(); document.getElementById('perr').hidden = true;
+          pending = ''; ppreview.hidden = true; ppreview.removeAttribute('src');
+          dlg.showModal();
+          document.getElementById('ptitle').focus();
+        });
+        grid.appendChild(add);
+      }
+    }
+
+    /* Editable lines */
+    lines.forEach(function (el) {
+      var k = el.dataset.key;
+      el.addEventListener('focus', function () {
+        if (!owner) return;
+        if (el.textContent.trim() === phs[k]) {
+          var r = document.createRange(); r.selectNodeContents(el);
+          var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r);
+        }
+      });
+      el.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter' && k === 'name') { e.preventDefault(); el.blur(); }
+      });
+      el.addEventListener('blur', function () {
+        if (!owner) return;
+        var v = (el.innerText || el.textContent).replace(/\u00a0/g, ' ').trim();
+        data[k] = (v && v !== phs[k]) ? v : '';
+        persist(); renderLines();
+      });
+    });
+
+    /* Add-project dialog (shrinks big photos so they stay small) */
+    pimg.addEventListener('change', function () {
+      var f = pimg.files && pimg.files[0];
+      if (!f) { pending = ''; ppreview.hidden = true; return; }
+      var fr = new FileReader();
+      fr.onload = function () {
+        var im = new Image();
+        im.onload = function () {
+          var sc = Math.min(1, 900 / im.width), c = document.createElement('canvas');
+          c.width = Math.round(im.width * sc); c.height = Math.round(im.height * sc);
+          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
+          pending = c.toDataURL('image/jpeg', 0.82);
+          ppreview.src = pending; ppreview.hidden = false;
+        };
+        im.src = fr.result;
+      };
+      fr.readAsDataURL(f);
+    });
+    document.getElementById('pcancel').addEventListener('click', function () { dlg.close(); });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
+    function addProject() {
+      var titleEl = document.getElementById('ptitle');
+      var title = titleEl.value.trim();
+      var perr = document.getElementById('perr');
+      if (!title) { perr.hidden = false; titleEl.focus(); return; }
+      perr.hidden = true;
+      data.projects.push({ title: title, desc: document.getElementById('pdesc').value.trim(), img: pending, show: true });
+      persist(); renderProjects(); dlg.close();
+    }
+    document.getElementById('psubmit').addEventListener('click', addProject);
+    pform.addEventListener('submit', function (e) { e.preventDefault(); });
+    document.getElementById('ptitle').addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') { e.preventDefault(); addProject(); }
+    });
+
+    /* Put on show: builds content.json with only the projects ticked "Show to visitors" */
+    var pubdlg = document.getElementById('pubdlg');
+    var pjson = document.getElementById('pjson');
+    var pstatus = document.getElementById('pstatus');
+    function publishText() {
+      return JSON.stringify({
+        name: data.name, desc: data.desc, contact: data.contact,
+        projects: data.projects.filter(function (p) { return p.show !== false; })
+      }, null, 1);
+    }
+    pubBtn.addEventListener('click', function () {
+      var n = data.projects.filter(function (p) { return p.show !== false; }).length;
+      document.getElementById('pcount').textContent =
+        'Visitors will see your name, description, contact info and ' + n + ' project' + (n === 1 ? '' : 's') + '.';
+      pjson.value = publishText(); pstatus.textContent = '';
+      pubdlg.showModal();
+    });
+    document.getElementById('pubclose').addEventListener('click', function () { pubdlg.close(); });
+    pubdlg.addEventListener('click', function (e) { if (e.target === pubdlg) pubdlg.close(); });
+    document.getElementById('pubdl').addEventListener('click', function () {
+      try {
+        var blob = new Blob([publishText()], { type: 'application/json' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob); a.download = 'content.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        pstatus.textContent = 'Downloaded content.json. Now upload it to GitHub (step 2).';
+      } catch (e) { pstatus.textContent = 'Download is blocked here. Use Copy instead.'; }
+    });
+    document.getElementById('pubcopy').addEventListener('click', function () {
+      function fallback() {
+        pjson.select();
+        var ok = false;
+        try { ok = document.execCommand('copy'); } catch (e) {}
+        pstatus.textContent = ok ? 'Copied.' : 'Select the text above and copy it (Ctrl+A, then Ctrl+C).';
+      }
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(pjson.value).then(function () { pstatus.textContent = 'Copied.'; }, fallback);
+      } else { fallback(); }
+    });
+
+    /* Start: owners see their working copy; visitors see the published content.json */
+    function renderAll() { renderLines(); renderProjects(); }
+    var local = owner ? loadLocal() : null;
+    if (local) { data = local; renderAll(); }
+    else {
+      renderAll();
+      fetch('content.json', { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+        .then(function (j) { data = clean(j); if (owner) persist(); })
+        .catch(function () {})
+        .then(renderAll);
+    }
+  })();
+</script>
+</body>
+</html>
